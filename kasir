@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kasir Elba Prime — POS & Pembukuan Offline</title>
+  <style>
+    :root{
+      --bg:#07111f;
+      --bg2:#0f1e33;
+      --card:rgba(255,255,255,.095);
+      --card2:rgba(255,255,255,.14);
+      --line:rgba(255,255,255,.14);
+      --text:#f7fbff;
+      --muted:#9fb0c5;
+      --soft:#d7e3f4;
+      --brand:#75e0c6;
+      --brand2:#8ba7ff;
+      --gold:#f4c870;
+      --danger:#ff7a8a;
+      --ok:#74e59a;
+      --warning:#ffd36a;
+      --shadow:0 24px 70px rgba(0,0,0,.35);
+      --radius:22px;
+      --radius2:14px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 15% 12%, rgba(117,224,198,.22), transparent 32%),
+        radial-gradient(circle at 80% 8%, rgba(139,167,255,.22), transparent 30%),
+        radial-gradient(circle at 65% 90%, rgba(244,200,112,.14), transparent 28%),
+        linear-gradient(135deg, var(--bg), var(--bg2));
+      overflow-x:hidden;
+    }
+    button,input,select,textarea{font:inherit}
+    button{cursor:pointer}
+    .hidden{display:none!important}
+    .auth-wrap{
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      padding:28px;
+      position:relative;
+    }
+    .orb{
+      position:absolute;
+      width:250px;
+      height:250px;
+      border-radius:50%;
+      filter:blur(30px);
+      opacity:.22;
+      background:var(--brand);
+      left:10%;
+      top:10%;
+      pointer-events:none;
+    }
+    .orb.two{background:var(--brand2);left:auto;right:9%;top:52%}
+    .auth-card{
+      width:min(1020px,100%);
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:18px;
+      background:rgba(255,255,255,.08);
+      border:1px solid var(--line);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(22px);
+      border-radius:32px;
+      overflow:hidden;
+    }
+    .hero{
+      padding:46px;
+      background:
+        linear-gradient(160deg, rgba(117,224,198,.14), rgba(139,167,255,.08)),
+        rgba(255,255,255,.04);
+      border-right:1px solid var(--line);
+      min-height:560px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+    }
+    .brand-mark{
+      display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:.3px
+    }
+    .logo{
+      width:48px;height:48px;border-radius:16px;
+      display:grid;place-items:center;
+      background:linear-gradient(135deg,var(--brand),var(--brand2));
+      color:#07111f;font-weight:950;font-size:26px;
+      box-shadow:0 14px 30px rgba(117,224,198,.24);
+    }
+    h1{font-size:clamp(38px,5vw,68px);line-height:.95;margin:24px 0 14px;letter-spacing:-2.5px}
+    h2{margin:0 0 16px;font-size:24px;letter-spacing:-.5px}
+    .lead{font-size:18px;color:var(--soft);max-width:560px;line-height:1.6}
+    .pill-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+    .pill{border:1px solid var(--line);background:rgba(255,255,255,.08);padding:10px 14px;border-radius:999px;color:var(--soft);font-size:13px}
+    .auth-form{padding:34px;align-self:center}
+    .form-card{background:rgba(7,17,31,.34);border:1px solid var(--line);border-radius:26px;padding:24px;box-shadow:0 16px 50px rgba(0,0,0,.2)}
+    label{display:block;color:var(--muted);font-size:12px;font-weight:750;margin:12px 0 7px;text-transform:uppercase;letter-spacing:.08em}
+    input,select,textarea{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:13px 14px;
+      background:rgba(255,255,255,.09);
+      color:var(--text);
+      outline:none;
+      transition:.18s;
+    }
+    textarea{min-height:88px;resize:vertical}
+    input:focus,select:focus,textarea:focus{border-color:rgba(117,224,198,.78);box-shadow:0 0 0 4px rgba(117,224,198,.12)}
+    option{color:#0b1628;background:#fff}
+    .btn{
+      border:0;border-radius:14px;padding:12px 16px;font-weight:850;
+      color:#07111f;background:linear-gradient(135deg,var(--brand),var(--brand2));
+      box-shadow:0 14px 28px rgba(117,224,198,.18);
+      transition:transform .15s, filter .15s;
+    }
+    .btn:hover{transform:translateY(-1px);filter:brightness(1.04)}
+    .btn.secondary{color:var(--text);background:rgba(255,255,255,.1);border:1px solid var(--line);box-shadow:none}
+    .btn.danger{color:#271013;background:linear-gradient(135deg,#ff9aa6,#ff687b);box-shadow:none}
+    .btn.warn{color:#201604;background:linear-gradient(135deg,#ffe399,#f4c870);box-shadow:none}
+    .btn.small{padding:8px 11px;border-radius:11px;font-size:12px}
+    .muted{color:var(--muted)}
+    .tiny{font-size:12px;color:var(--muted);line-height:1.5}
+    .full{width:100%;margin-top:16px}
+    .switcher{display:flex;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:16px;padding:5px;margin-bottom:16px}
+    .switcher button{flex:1;background:transparent;border:0;color:var(--muted);border-radius:12px;padding:10px;font-weight:800}
+    .switcher button.active{background:rgba(255,255,255,.14);color:var(--text)}
+    .app{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
+    aside{
+      position:sticky;top:0;height:100vh;padding:22px;border-right:1px solid var(--line);
+      background:rgba(7,17,31,.55);backdrop-filter:blur(24px);
+    }
+    .side-top{display:flex;align-items:center;gap:12px;margin-bottom:26px}
+    .store-title{font-weight:900;line-height:1.15}
+    .store-sub{font-size:12px;color:var(--muted);margin-top:4px}
+    nav{display:grid;gap:8px}
+    .nav-btn{
+      border:1px solid transparent;background:transparent;color:var(--soft);display:flex;align-items:center;gap:11px;
+      padding:12px 13px;border-radius:16px;font-weight:800;text-align:left;
+    }
+    .nav-btn:hover{background:rgba(255,255,255,.07)}
+    .nav-btn.active{background:linear-gradient(135deg,rgba(117,224,198,.18),rgba(139,167,255,.16));border-color:var(--line);color:var(--text)}
+    .side-footer{position:absolute;left:22px;right:22px;bottom:22px;display:grid;gap:10px}
+    main{padding:24px 28px 42px;min-width:0}
+    .topbar{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:18px}
+    .page-title{font-size:30px;font-weight:950;letter-spacing:-1.2px;margin:0}
+    .page-sub{margin:5px 0 0;color:var(--muted)}
+    .grid{display:grid;gap:16px}
+    .grid.cards{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .grid.two{grid-template-columns:1.1fr .9fr}
+    .grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .card{
+      background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;
+      box-shadow:0 12px 34px rgba(0,0,0,.18);backdrop-filter:blur(20px);
+    }
+    .metric-title{color:var(--muted);font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+    .metric-value{font-size:28px;font-weight:950;letter-spacing:-.8px;margin-top:8px}
+    .metric-note{font-size:12px;color:var(--muted);margin-top:7px}
+    .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 14px}
+    .toolbar .grow{flex:1;min-width:210px}
+    table{width:100%;border-collapse:collapse;overflow:hidden}
+    th,td{text-align:left;padding:12px 10px;border-bottom:1px solid rgba(255,255,255,.09);vertical-align:top}
+    th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:850}
+    td{color:var(--soft);font-size:14px}
+    tr:last-child td{border-bottom:0}
+    .badge{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border-radius:999px;font-size:12px;font-weight:850;border:1px solid var(--line);color:var(--soft);background:rgba(255,255,255,.07)}
+    .badge.ok{color:#c8ffd8;background:rgba(116,229,154,.12)}
+    .badge.warn{color:#ffeab2;background:rgba(255,211,106,.13)}
+    .badge.danger{color:#ffc3ca;background:rgba(255,122,138,.13)}
+    .pos-layout{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:16px}
+    .product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:12px;max-height:calc(100vh - 210px);overflow:auto;padding-right:4px}
+    .product-tile{padding:14px;border-radius:18px;background:rgba(255,255,255,.08);border:1px solid var(--line);display:flex;flex-direction:column;gap:10px;min-height:150px}
+    .product-tile h3{font-size:15px;margin:0;line-height:1.25}
+    .price{font-weight:950;color:#fff;font-size:18px}
+    .cart{position:sticky;top:18px;align-self:start}
+    .cart-items{display:grid;gap:9px;max-height:310px;overflow:auto;margin:12px 0}
+    .cart-row{display:grid;grid-template-columns:1fr auto;gap:10px;padding:11px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.07)}
+    .qty{display:flex;gap:6px;align-items:center;justify-content:flex-end;margin-top:8px}
+    .qty button{width:28px;height:28px;border-radius:9px;border:1px solid var(--line);background:rgba(255,255,255,.08);color:var(--text);font-weight:900}
+    .sum-line{display:flex;justify-content:space-between;gap:10px;color:var(--soft);margin:9px 0}
+    .sum-line.total{font-size:22px;color:var(--text);font-weight:950;border-top:1px solid var(--line);padding-top:12px;margin-top:12px}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.62);display:grid;place-items:center;padding:20px;z-index:30}
+    .modal{width:min(760px,100%);max-height:90vh;overflow:auto;background:#0b1628;border:1px solid var(--line);border-radius:28px;box-shadow:var(--shadow);padding:22px}
+    .modal-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:14px}
+    .receipt{background:#fff;color:#111;border-radius:16px;padding:20px;font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+    .receipt h3{text-align:center;margin:0 0 4px;color:#111}
+    .receipt p,.receipt div{color:#111;font-size:12px}
+    .receipt .rline{border-top:1px dashed #888;margin:10px 0}
+    .receipt table th,.receipt table td{color:#111;border-bottom:1px dashed #ddd;font-size:12px;padding:7px 3px}
+    .toast{position:fixed;right:22px;bottom:22px;z-index:40;background:rgba(11,22,40,.94);border:1px solid var(--line);border-radius:18px;padding:14px 16px;box-shadow:var(--shadow);max-width:340px}
+    .empty{text-align:center;color:var(--muted);padding:24px;border:1px dashed var(--line);border-radius:18px;background:rgba(255,255,255,.04)}
+    .mobile-menu{display:none}
+    .report-print{display:none}
+    @media(max-width:1100px){
+      .grid.cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .pos-layout,.grid.two{grid-template-columns:1fr}
+      .cart{position:relative;top:auto}
+      .product-grid{max-height:none}
+    }
+    @media(max-width:780px){
+      .auth-card{grid-template-columns:1fr}
+      .hero{min-height:auto;padding:30px;border-right:0;border-bottom:1px solid var(--line)}
+      .auth-form{padding:20px}
+      .app{grid-template-columns:1fr}
+      aside{display:none}
+      main{padding:16px}
+      .mobile-menu{display:block;margin-bottom:14px}
+      .grid.cards,.grid.three{grid-template-columns:1fr}
+      .topbar{align-items:flex-start;flex-direction:column}
+      th:nth-child(3),td:nth-child(3){display:none}
+    }
+    @media print{
+      body{background:#fff;color:#111}
+      body *{visibility:hidden!important}
+      .printable,.printable *{visibility:visible!important}
+      .printable{position:absolute;left:0;top:0;width:100%;background:#fff;color:#111}
+      .no-print{display:none!important}
+    }
+  </style>
+</head>
+<body>
+  <div id="auth" class="auth-wrap">
+    <div class="orb"></div><div class="orb two"></div>
+    <section class="auth-card">
+      <div class="hero">
+        <div>
+          <div class="brand-mark"><div class="logo">E</div><div><b>Kasir Elba Prime</b><div class="store-sub">POS pribadi, premium, offline</div></div></div>
+          <h1>Kasir rapi. Stok aman. Uang kebaca.</h1>
+          <p class="lead">Aplikasi kasir dan pembukuan untuk jualan harian. Cocok untuk toko HP, warung, produk digital, atau usaha kecil yang butuh catatan bersih tanpa ribet.</p>
+          <div class="pill-row">
+            <span class="pill">Gratis untuk pribadi</span>
+            <span class="pill">Tanpa server</span>
+            <span class="pill">PIN lokal</span>
+            <span class="pill">Export CSV & Backup</span>
+          </div>
+        </div>
+        <p class="tiny">Catatan: data tersimpan di browser/perangkat ini. Rutin gunakan menu Backup supaya data aman saat pindah perangkat atau bersihkan browser.</p>
+      </div>
+      <div class="auth-form">
+        <div class="form-card">
+          <div class="switcher" id="authSwitcher">
+            <button class="active" data-auth="login">Masuk</button>
+            <button data-auth="setup">Buat Toko</button>
+          </div>
+          <div id="loginBox">
+            <h2>Masuk Kasir</h2>
+            <p class="tiny" id="loginHint">Masukkan PIN 6 digit kamu.</p>
+            <label>PIN</label>
+            <input id="loginPin" type="password" inputmode="numeric" maxlength="6" placeholder="••••••" />
+            <button class="btn full" onclick="login()">Masuk</button>
+            <button class="btn secondary full" onclick="showResetHelp()">Lupa PIN / Reset</button>
+          </div>
+          <div id="setupBox" class="hidden">
+            <h2>Buat Akun Toko</h2>
+            <label>Nama Toko / Usaha</label>
+            <input id="setupStore" placeholder="Contoh: Elba Store" />
+            <label>Nama Pemilik</label>
+            <input id="setupOwner" placeholder="Contoh: Angga" />
+            <label>PIN 6 digit</label>
+            <input id="setupPin" type="password" inputmode="numeric" maxlength="6" placeholder="123456" />
+            <button class="btn full" onclick="createAccount()">Buat Akun & Mulai</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="app" class="app hidden">
+    <aside>
+      <div class="side-top">
+        <div class="logo">E</div>
+        <div>
+          <div class="store-title" id="sideStore">Elba Store</div>
+          <div class="store-sub" id="sideOwner">Pemilik</div>
+        </div>
+      </div>
+      <nav id="nav"></nav>
+      <div class="side-footer">
+        <button class="btn secondary" onclick="lockApp()">Kunci Aplikasi</button>
+        <button class="btn secondary" onclick="goSection('settings')">Pengaturan</button>
+      </div>
+    </aside>
+    <main>
+      <select id="mobileNav" class="mobile-menu" onchange="goSection(this.value)"></select>
+      <div id="content"></div>
+    </main>
+  </div>
+
+  <div id="modalRoot"></div>
+  <div id="toast" class="toast hidden"></div>
+
+  <script>
+    const KEY = 'kasir_elba_prime_personal_v1';
+    const rupiah = new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0});
+    const menus = [
+      ['dashboard','Dashboard','Ringkasan usaha hari ini'],
+      ['pos','Kasir','Transaksi cepat'],
+      ['products','Produk & Stok','Kelola barang'],
+      ['books','Pembukuan','Uang masuk & keluar'],
+      ['reports','Laporan','Analisis dan export'],
+      ['settings','Pengaturan','Identitas toko']
+    ];
+    let db = loadDB();
+    let current = 'dashboard';
+    let cart = [];
+    let editingProductId = null;
+
+    function loadDB(){
+      const raw = localStorage.getItem(KEY);
+      if(!raw) return {store:null, products:[], transactions:[], books:[], createdAt:new Date().toISOString()};
+      try{return JSON.parse(raw)}catch(e){return {store:null, products:[], transactions:[], books:[], createdAt:new Date().toISOString()}}
+    }
+    function saveDB(){localStorage.setItem(KEY, JSON.stringify(db));}
+    function $(id){return document.getElementById(id)}
+    function money(n){return rupiah.format(Number(n||0))}
+    function num(v){return Number(String(v||'0').replace(/[^0-9.-]/g,''))||0}
+    function today(){return new Date().toISOString().slice(0,10)}
+    function dateTime(){return new Date().toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'})}
+    function byDate(item){return String(item.date||item.createdAt||'').slice(0,10)}
+    function uid(prefix){return prefix + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2,7).toUpperCase()}
+    function invoice(){
+      const d = new Date();
+      return 'ELB-' + d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0') + '-' + String(db.transactions.length+1).padStart(4,'0')
+    }
+    function toast(msg){
+      $('toast').textContent = msg;
+      $('toast').classList.remove('hidden');
+      setTimeout(()=>$('toast').classList.add('hidden'),2600);
+    }
+    function escapeHTML(str){return String(str??'').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+
+    function init(){
+      setupAuthSwitcher();
+      if(db.store){
+        $('authSwitcher').querySelector('[data-auth="setup"]').classList.add('hidden');
+        $('loginHint').textContent = `Masuk ke ${db.store.name}.`;
+        showAuth('login');
+      } else {
+        showAuth('setup');
+      }
+      renderNav();
+    }
+    function setupAuthSwitcher(){
+      document.querySelectorAll('#authSwitcher button').forEach(btn=>btn.onclick=()=>showAuth(btn.dataset.auth));
+    }
+    function showAuth(type){
+      document.querySelectorAll('#authSwitcher button').forEach(b=>b.classList.toggle('active', b.dataset.auth===type));
+      $('loginBox').classList.toggle('hidden', type!=='login');
+      $('setupBox').classList.toggle('hidden', type!=='setup');
+    }
+    function createAccount(){
+      const name = $('setupStore').value.trim();
+      const owner = $('setupOwner').value.trim();
+      const pin = $('setupPin').value.trim();
+      if(!name || !owner || !/^\d{6}$/.test(pin)) return toast('Isi nama toko, pemilik, dan PIN harus 6 digit.');
+      db.store = {name, owner, pin, address:'', phone:'', note:'Terima kasih sudah belanja.', theme:'prime'};
+      db.products = seedProducts();
+      saveDB();
+      unlockApp();
+      toast('Akun toko berhasil dibuat.');
+    }
+    function seedProducts(){
+      return [
+        {id:uid('prd'),name:'Contoh Produk A',sku:'ELBA-A01',category:'Umum',cost:80000,price:100000,stock:5,minStock:2,createdAt:new Date().toISOString()},
+        {id:uid('prd'),name:'Contoh Produk B',sku:'ELBA-B01',category:'Umum',cost:120000,price:150000,stock:3,minStock:1,createdAt:new Date().toISOString()}
+      ];
+    }
+    function login(){
+      if(!db.store) return showAuth('setup');
+      if($('loginPin').value.trim() === db.store.pin){
+        unlockApp();
+        $('loginPin').value='';
+      }else toast('PIN salah. Coba lagi.');
+    }
+    function unlockApp(){
+      $('auth').classList.add('hidden');
+      $('app').classList.remove('hidden');
+      renderNav();
+      goSection(current||'dashboard');
+    }
+    function lockApp(){
+      $('app').classList.add('hidden');
+      $('auth').classList.remove('hidden');
+      showAuth('login');
+    }
+    function showResetHelp(){
+      openModal(`<div class="modal-head"><h2>Reset aplikasi</h2><button class="btn secondary small" onclick="closeModal()">Tutup</button></div>
+      <p class="muted">Kalau lupa PIN, kamu bisa reset semua data aplikasi. Pastikan kamu sudah punya file backup jika datanya penting.</p>
+      <div class="toolbar"><button class="btn danger" onclick="hardReset()">Reset Semua Data</button><button class="btn secondary" onclick="closeModal()">Batal</button></div>`);
+    }
+    function hardReset(){
+      if(confirm('Yakin reset semua data? Produk, transaksi, dan pembukuan akan hilang.')){
+        localStorage.removeItem(KEY); location.reload();
+      }
+    }
+
+    function renderNav(){
+      const nav = $('nav');
+      const mobile = $('mobileNav');
+      if(!nav || !mobile) return;
+      nav.innerHTML = menus.map(m=>`<button class="nav-btn ${current===m[0]?'active':''}" onclick="goSection('${m[0]}')"><span>${navIcon(m[0])}</span><span>${m[1]}</span></button>`).join('');
+      mobile.innerHTML = menus.map(m=>`<option value="${m[0]}" ${current===m[0]?'selected':''}>${m[1]}</option>`).join('');
+      if(db.store){$('sideStore').textContent=db.store.name; $('sideOwner').textContent=db.store.owner;}
+    }
+    function navIcon(id){return ({dashboard:'⌁',pos:'▣',products:'▤',books:'◇',reports:'◎',settings:'⚙'}[id]||'•')}
+    function goSection(id){
+      current = id; renderNav();
+      const data = menus.find(m=>m[0]===id) || menus[0];
+      $('content').innerHTML = `<div class="topbar"><div><h1 class="page-title">${data[1]}</h1><p class="page-sub">${data[2]}</p></div><div class="badge">${new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div></div>` + renderSection(id);
+      bindSection(id);
+    }
+    function renderSection(id){
+      if(id==='dashboard') return dashboardHTML();
+      if(id==='pos') return posHTML();
+      if(id==='products') return productsHTML();
+      if(id==='books') return booksHTML();
+      if(id==='reports') return reportsHTML();
+      if(id==='settings') return settingsHTML();
+      return '';
+    }
+
+    function summarize(start=today(), end=today()){
+      const tx = db.transactions.filter(t=>byDate(t)>=start && byDate(t)<=end);
+      const books = db.books.filter(b=>byDate(b)>=start && byDate(b)<=end);
+      const sales = tx.reduce((s,t)=>s+num(t.total),0);
+      const cogs = tx.reduce((s,t)=>s+t.items.reduce((a,i)=>a+num(i.cost)*num(i.qty),0),0);
+      const gross = sales-cogs;
+      const income = books.filter(b=>b.type==='income').reduce((s,b)=>s+num(b.amount),0);
+      const expense = books.filter(b=>b.type==='expense').reduce((s,b)=>s+num(b.amount),0);
+      const net = gross + income - expense;
+      const itemsSold = tx.reduce((s,t)=>s+t.items.reduce((a,i)=>a+num(i.qty),0),0);
+      return {tx, books, sales, cogs, gross, income, expense, net, itemsSold};
+    }
+    function dashboardHTML(){
+      const s = summarize();
+      const low = db.products.filter(p=>num(p.stock)<=num(p.minStock));
+      const stockValue = db.products.reduce((a,p)=>a+num(p.cost)*num(p.stock),0);
+      const lastTx = [...db.transactions].reverse().slice(0,6);
+      return `<div class="grid cards">
+        ${metric('Omzet Hari Ini',money(s.sales),`${s.tx.length} transaksi · ${s.itemsSold} item terjual`)}
+        ${metric('Laba Kotor',money(s.gross),`Omzet dikurangi modal barang`)}
+        ${metric('Laba Bersih Estimasi',money(s.net),`Sudah dihitung dengan kas masuk/keluar`)}
+        ${metric('Nilai Stok Modal',money(stockValue),`${db.products.length} produk · ${low.length} stok menipis`)}
+      </div>
+      <div class="grid two" style="margin-top:16px">
+        <div class="card"><h2>Transaksi Terakhir</h2>${lastTx.length?txTable(lastTx):empty('Belum ada transaksi. Mulai dari menu Kasir.')}</div>
+        <div class="card"><h2>Stok Perlu Dipantau</h2>${low.length?productMiniTable(low):empty('Aman. Tidak ada stok di bawah batas minimum.')}</div>
+      </div>`;
+    }
+    function metric(title,value,note){return `<div class="card"><div class="metric-title">${title}</div><div class="metric-value">${value}</div><div class="metric-note">${note}</div></div>`}
+    function empty(text){return `<div class="empty">${text}</div>`}
+    function txTable(rows){
+      return `<table><thead><tr><th>Invoice</th><th>Total</th><th>Metode</th><th>Waktu</th></tr></thead><tbody>${rows.map(t=>`<tr><td><b>${escapeHTML(t.invoice)}</b><br><span class="tiny">${t.items.length} item</span></td><td>${money(t.total)}</td><td>${escapeHTML(t.method||'-')}</td><td>${new Date(t.date).toLocaleString('id-ID',{dateStyle:'short',timeStyle:'short'})}</td></tr>`).join('')}</tbody></table>`
+    }
+    function productMiniTable(rows){
+      return `<table><thead><tr><th>Produk</th><th>Stok</th><th>Status</th></tr></thead><tbody>${rows.map(p=>`<tr><td><b>${escapeHTML(p.name)}</b><br><span class="tiny">${escapeHTML(p.sku||'-')}</span></td><td>${p.stock}</td><td>${num(p.stock)<=0?'<span class="badge danger">Habis</span>':'<span class="badge warn">Tipis</span>'}</td></tr>`).join('')}</tbody></table>`
+    }
+
+    function posHTML(){
+      return `<div class="pos-layout">
+        <div class="card">
+          <div class="toolbar"><input id="posSearch" class="grow" placeholder="Cari produk / SKU..." oninput="renderProductTiles()"><button class="btn secondary" onclick="goSection('products')">Tambah Produk</button></div>
+          <div id="productTiles" class="product-grid"></div>
+        </div>
+        <div class="card cart">
+          <h2>Keranjang</h2>
+          <div id="cartItems" class="cart-items"></div>
+          <label>Diskon</label><input id="discount" type="number" value="0" min="0" oninput="renderCart()">
+          <label>Metode Bayar</label><select id="payMethod"><option>Cash</option><option>QRIS</option><option>Transfer</option><option>Debit</option></select>
+          <label>Dibayar</label><input id="paid" type="number" min="0" oninput="renderCart()" placeholder="Nominal dibayar">
+          <label>Catatan</label><textarea id="txNote" placeholder="Opsional"></textarea>
+          <div id="cartSummary"></div>
+          <div class="toolbar"><button class="btn full" onclick="checkout()">Simpan Transaksi</button><button class="btn secondary full" onclick="clearCart()">Kosongkan</button></div>
+        </div>
+      </div>`;
+    }
+    function bindSection(id){
+      if(id==='pos'){renderProductTiles();renderCart()}
+      if(id==='products'){renderProducts();resetProductForm()}
+      if(id==='books'){renderBooks()}
+      if(id==='reports'){setDefaultReportDates(); renderReport()}
+    }
+    function renderProductTiles(){
+      const q = ($('posSearch')?.value||'').toLowerCase();
+      const products = db.products.filter(p=>[p.name,p.sku,p.category].join(' ').toLowerCase().includes(q));
+      $('productTiles').innerHTML = products.length ? products.map(p=>`<div class="product-tile">
+        <div><h3>${escapeHTML(p.name)}</h3><div class="tiny">${escapeHTML(p.sku||'-')} · ${escapeHTML(p.category||'Umum')}</div></div>
+        <div class="price">${money(p.price)}</div>
+        <div class="tiny">Modal ${money(p.cost)} · Stok ${p.stock}</div>
+        <button class="btn small" ${num(p.stock)<=0?'disabled style="opacity:.45;cursor:not-allowed"':''} onclick="addToCart('${p.id}')">Tambah</button>
+      </div>`).join('') : empty('Produk tidak ditemukan.');
+    }
+    function addToCart(id){
+      const p = db.products.find(x=>x.id===id); if(!p) return;
+      const row = cart.find(x=>x.id===id);
+      const qtyNow = row ? row.qty : 0;
+      if(qtyNow+1 > num(p.stock)) return toast('Stok tidak cukup.');
+      if(row) row.qty += 1; else cart.push({id:p.id,name:p.name,sku:p.sku,price:num(p.price),cost:num(p.cost),qty:1});
+      renderCart();
+    }
+    function cartSubTotal(){return cart.reduce((a,i)=>a+num(i.price)*num(i.qty),0)}
+    function renderCart(){
+      const items = $('cartItems'); if(!items) return;
+      items.innerHTML = cart.length ? cart.map(i=>`<div class="cart-row"><div><b>${escapeHTML(i.name)}</b><div class="tiny">${money(i.price)} × ${i.qty} = ${money(i.price*i.qty)}</div><div class="qty"><button onclick="cartQty('${i.id}',-1)">−</button><b>${i.qty}</b><button onclick="cartQty('${i.id}',1)">+</button><button onclick="removeCart('${i.id}')">×</button></div></div><div>${money(i.price*i.qty)}</div></div>`).join('') : empty('Keranjang masih kosong.');
+      const subtotal = cartSubTotal();
+      const discount = Math.min(num($('discount')?.value), subtotal);
+      const total = Math.max(0, subtotal-discount);
+      const paid = num($('paid')?.value);
+      $('cartSummary').innerHTML = `<div class="sum-line"><span>Subtotal</span><b>${money(subtotal)}</b></div><div class="sum-line"><span>Diskon</span><b>${money(discount)}</b></div><div class="sum-line total"><span>Total</span><span>${money(total)}</span></div><div class="sum-line"><span>Kembalian</span><b>${money(Math.max(0,paid-total))}</b></div>`;
+    }
+    function cartQty(id,delta){
+      const row = cart.find(x=>x.id===id); if(!row) return;
+      const p = db.products.find(x=>x.id===id);
+      if(delta>0 && row.qty+1>num(p.stock)) return toast('Stok tidak cukup.');
+      row.qty += delta;
+      if(row.qty<=0) removeCart(id); else renderCart();
+    }
+    function removeCart(id){cart = cart.filter(x=>x.id!==id); renderCart()}
+    function clearCart(){cart=[]; renderCart()}
+    function checkout(){
+      if(!cart.length) return toast('Keranjang masih kosong.');
+      const subtotal = cartSubTotal();
+      const discount = Math.min(num($('discount').value), subtotal);
+      const total = Math.max(0, subtotal-discount);
+      const paid = num($('paid').value) || total;
+      const method = $('payMethod').value;
+      if(method==='Cash' && paid<total) return toast('Nominal cash kurang dari total.');
+      for(const i of cart){const p=db.products.find(x=>x.id===i.id); if(!p || i.qty>num(p.stock)) return toast(`Stok ${i.name} tidak cukup.`)}
+      cart.forEach(i=>{const p=db.products.find(x=>x.id===i.id); p.stock=num(p.stock)-num(i.qty)});
+      const tx = {id:uid('tx'),invoice:invoice(),items:cart.map(i=>({...i,total:i.price*i.qty})),subtotal,discount,total,paid,change:Math.max(0,paid-total),method,note:$('txNote').value.trim(),date:new Date().toISOString()};
+      db.transactions.push(tx); saveDB();
+      cart=[]; $('discount').value=0; $('paid').value=''; $('txNote').value='';
+      renderProductTiles(); renderCart(); showReceipt(tx); toast('Transaksi tersimpan.');
+    }
+    function showReceipt(tx){
+      openModal(`<div class="modal-head no-print"><h2>Struk Transaksi</h2><div class="toolbar"><button class="btn" onclick="window.print()">Print / Simpan PDF</button><button class="btn secondary" onclick="closeModal()">Tutup</button></div></div>${receiptHTML(tx)}`);
+    }
+    function receiptHTML(tx){
+      return `<div class="receipt printable"><h3>${escapeHTML(db.store.name)}</h3><p style="text-align:center">${escapeHTML(db.store.address||'')} ${db.store.phone?'<br>'+escapeHTML(db.store.phone):''}</p><div class="rline"></div><div>Invoice: <b>${escapeHTML(tx.invoice)}</b></div><div>Tanggal: ${new Date(tx.date).toLocaleString('id-ID')}</div><div>Kasir: ${escapeHTML(db.store.owner)}</div><div class="rline"></div><table><thead><tr><th>Item</th><th>Qty</th><th>Total</th></tr></thead><tbody>${tx.items.map(i=>`<tr><td>${escapeHTML(i.name)}<br>${money(i.price)}</td><td>${i.qty}</td><td>${money(i.total)}</td></tr>`).join('')}</tbody></table><div class="rline"></div><div style="display:flex;justify-content:space-between"><span>Subtotal</span><b>${money(tx.subtotal)}</b></div><div style="display:flex;justify-content:space-between"><span>Diskon</span><b>${money(tx.discount)}</b></div><div style="display:flex;justify-content:space-between;font-size:15px"><span>Total</span><b>${money(tx.total)}</b></div><div style="display:flex;justify-content:space-between"><span>Dibayar</span><b>${money(tx.paid)}</b></div><div style="display:flex;justify-content:space-between"><span>Kembali</span><b>${money(tx.change)}</b></div><div class="rline"></div><p style="text-align:center">${escapeHTML(db.store.note||'Terima kasih')}</p></div>`;
+    }
+
+    function productsHTML(){
+      return `<div class="grid two">
+        <div class="card"><h2 id="productFormTitle">Tambah Produk</h2>
+          <div class="grid two">
+            <div><label>Nama Produk</label><input id="pName" placeholder="iPhone 11 64GB / Voucher / Aksesoris"></div>
+            <div><label>SKU</label><input id="pSku" placeholder="Kode barang"></div>
+          </div>
+          <div class="grid three">
+            <div><label>Kategori</label><input id="pCategory" placeholder="HP / Aksesoris"></div>
+            <div><label>Harga Modal</label><input id="pCost" type="number" min="0"></div>
+            <div><label>Harga Jual</label><input id="pPrice" type="number" min="0"></div>
+          </div>
+          <div class="grid two">
+            <div><label>Stok</label><input id="pStock" type="number" min="0"></div>
+            <div><label>Minimal Stok</label><input id="pMin" type="number" min="0" value="1"></div>
+          </div>
+          <div class="toolbar" style="margin-top:16px"><button class="btn" onclick="saveProduct()">Simpan Produk</button><button class="btn secondary" onclick="resetProductForm()">Batal/Edit Baru</button></div>
+        </div>
+        <div class="card"><h2>Ringkasan Stok</h2><div class="grid two">${metric('Jumlah Produk',db.products.length,'Semua item aktif')}${metric('Stok Tipis',db.products.filter(p=>num(p.stock)<=num(p.minStock)).length,'Butuh restock')}</div></div>
+      </div>
+      <div class="card" style="margin-top:16px"><div class="toolbar"><input id="productSearch" class="grow" placeholder="Cari produk..." oninput="renderProducts()"><button class="btn secondary" onclick="exportProductsCSV()">Export Produk CSV</button></div><div id="productsTable"></div></div>`;
+    }
+    function saveProduct(){
+      const p = {name:$('pName').value.trim(),sku:$('pSku').value.trim(),category:$('pCategory').value.trim()||'Umum',cost:num($('pCost').value),price:num($('pPrice').value),stock:num($('pStock').value),minStock:num($('pMin').value)};
+      if(!p.name || p.price<=0) return toast('Nama produk dan harga jual wajib diisi.');
+      if(editingProductId){
+        const old = db.products.find(x=>x.id===editingProductId); Object.assign(old,p);
+        toast('Produk diperbarui.');
+      } else {
+        db.products.push({...p,id:uid('prd'),createdAt:new Date().toISOString()}); toast('Produk ditambahkan.');
+      }
+      saveDB(); resetProductForm(); renderProducts();
+    }
+    function resetProductForm(){
+      editingProductId=null; ['pName','pSku','pCategory','pCost','pPrice','pStock','pMin'].forEach(id=>{if($(id)) $(id).value = id==='pMin'?'1':''});
+      if($('productFormTitle')) $('productFormTitle').textContent='Tambah Produk';
+    }
+    function editProduct(id){
+      const p=db.products.find(x=>x.id===id); if(!p) return;
+      editingProductId=id; $('productFormTitle').textContent='Edit Produk';
+      $('pName').value=p.name; $('pSku').value=p.sku||''; $('pCategory').value=p.category||''; $('pCost').value=p.cost; $('pPrice').value=p.price; $('pStock').value=p.stock; $('pMin').value=p.minStock||0;
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+    function deleteProduct(id){
+      if(!confirm('Hapus produk ini?')) return;
+      db.products=db.products.filter(p=>p.id!==id); saveDB(); renderProducts(); toast('Produk dihapus.');
+    }
+    function renderProducts(){
+      const q = ($('productSearch')?.value||'').toLowerCase();
+      const rows = db.products.filter(p=>[p.name,p.sku,p.category].join(' ').toLowerCase().includes(q));
+      $('productsTable').innerHTML = rows.length ? `<table><thead><tr><th>Produk</th><th>Harga</th><th>Stok</th><th>Status</th><th>Aksi</th></tr></thead><tbody>${rows.map(p=>`<tr><td><b>${escapeHTML(p.name)}</b><br><span class="tiny">${escapeHTML(p.sku||'-')} · ${escapeHTML(p.category||'Umum')}</span></td><td>Jual ${money(p.price)}<br><span class="tiny">Modal ${money(p.cost)} · Margin ${money(num(p.price)-num(p.cost))}</span></td><td>${p.stock}<br><span class="tiny">Min ${p.minStock||0}</span></td><td>${num(p.stock)<=0?'<span class="badge danger">Habis</span>':num(p.stock)<=num(p.minStock)?'<span class="badge warn">Tipis</span>':'<span class="badge ok">Aman</span>'}</td><td><button class="btn secondary small" onclick="editProduct('${p.id}')">Edit</button> <button class="btn danger small" onclick="deleteProduct('${p.id}')">Hapus</button></td></tr>`).join('')}</tbody></table>` : empty('Belum ada produk. Tambahkan produk pertama kamu.');
+    }
+
+    function booksHTML(){
+      return `<div class="grid two">
+        <div class="card"><h2>Catat Kas</h2>
+          <label>Tipe</label><select id="bType"><option value="income">Kas Masuk</option><option value="expense">Kas Keluar</option></select>
+          <label>Kategori</label><input id="bCategory" placeholder="Operasional, makan, bensin, bonus, dll">
+          <label>Nominal</label><input id="bAmount" type="number" min="0">
+          <label>Catatan</label><textarea id="bNote" placeholder="Keterangan singkat"></textarea>
+          <label>Tanggal</label><input id="bDate" type="date" value="${today()}">
+          <button class="btn full" onclick="saveBook()">Simpan Catatan</button>
+        </div>
+        <div class="card"><h2>Kas Hari Ini</h2>${bookSummaryHTML()}</div>
+      </div>
+      <div class="card" style="margin-top:16px"><div class="toolbar"><input id="bookSearch" class="grow" placeholder="Cari catatan kas..." oninput="renderBooks()"><button class="btn secondary" onclick="exportBooksCSV()">Export Kas CSV</button></div><div id="booksTable"></div></div>`;
+    }
+    function bookSummaryHTML(){const s=summarize(); return `<div class="grid two">${metric('Kas Masuk',money(s.income),'Manual, di luar transaksi kasir')}${metric('Kas Keluar',money(s.expense),'Biaya dan operasional')}</div>`}
+    function saveBook(){
+      const b = {id:uid('book'),type:$('bType').value,category:$('bCategory').value.trim()||'Umum',amount:num($('bAmount').value),note:$('bNote').value.trim(),date:$('bDate').value || today(),createdAt:new Date().toISOString()};
+      if(b.amount<=0) return toast('Nominal wajib lebih dari 0.');
+      db.books.push(b); saveDB();
+      $('bAmount').value=''; $('bNote').value=''; $('bCategory').value=''; $('bDate').value=today();
+      renderBooks(); toast('Catatan kas tersimpan.');
+    }
+    function deleteBook(id){if(confirm('Hapus catatan ini?')){db.books=db.books.filter(b=>b.id!==id);saveDB();renderBooks();toast('Catatan dihapus.')}}
+    function renderBooks(){
+      const q=($('bookSearch')?.value||'').toLowerCase();
+      const rows=[...db.books].reverse().filter(b=>[b.category,b.note,b.type].join(' ').toLowerCase().includes(q));
+      const el=$('booksTable'); if(!el) return;
+      el.innerHTML = rows.length ? `<table><thead><tr><th>Tanggal</th><th>Tipe</th><th>Kategori</th><th>Nominal</th><th>Aksi</th></tr></thead><tbody>${rows.map(b=>`<tr><td>${b.date}</td><td>${b.type==='income'?'<span class="badge ok">Kas Masuk</span>':'<span class="badge danger">Kas Keluar</span>'}</td><td><b>${escapeHTML(b.category)}</b><br><span class="tiny">${escapeHTML(b.note||'-')}</span></td><td>${money(b.amount)}</td><td><button class="btn danger small" onclick="deleteBook('${b.id}')">Hapus</button></td></tr>`).join('')}</tbody></table>` : empty('Belum ada catatan pembukuan.');
+    }
+
+    function reportsHTML(){
+      return `<div class="card"><div class="toolbar"><div><label>Dari</label><input id="rStart" type="date" onchange="renderReport()"></div><div><label>Sampai</label><input id="rEnd" type="date" onchange="renderReport()"></div><button class="btn secondary" onclick="printReport()">Print / Simpan PDF</button><button class="btn secondary" onclick="exportTransactionsCSV()">Export Transaksi CSV</button></div></div><div id="reportArea" style="margin-top:16px"></div>`;
+    }
+    function setDefaultReportDates(){if($('rStart')&&!$('rStart').value){const d=new Date();d.setDate(1);$('rStart').value=d.toISOString().slice(0,10);$('rEnd').value=today();}}
+    function renderReport(){
+      const start=$('rStart')?.value||today(), end=$('rEnd')?.value||today();
+      const s=summarize(start,end);
+      const best = {};
+      s.tx.forEach(t=>t.items.forEach(i=>{best[i.name]=(best[i.name]||0)+num(i.qty)}));
+      const bestRows=Object.entries(best).sort((a,b)=>b[1]-a[1]).slice(0,8);
+      $('reportArea').innerHTML = `<div class="grid cards">${metric('Omzet',money(s.sales),`${s.tx.length} transaksi`)}${metric('Laba Kotor',money(s.gross),`HPP ${money(s.cogs)}`)}${metric('Biaya',money(s.expense),`Kas keluar manual`)}${metric('Laba Bersih',money(s.net),`Estimasi periode`)}</div>
+      <div class="grid two" style="margin-top:16px"><div class="card"><h2>Transaksi Periode</h2>${s.tx.length?txTable([...s.tx].reverse().slice(0,25)):empty('Tidak ada transaksi pada periode ini.')}</div><div class="card"><h2>Produk Terlaris</h2>${bestRows.length?`<table><thead><tr><th>Produk</th><th>Qty</th></tr></thead><tbody>${bestRows.map(r=>`<tr><td>${escapeHTML(r[0])}</td><td>${r[1]}</td></tr>`).join('')}</tbody></table>`:empty('Belum ada data produk terjual.')}</div></div>`;
+    }
+    function printReport(){
+      const start=$('rStart').value, end=$('rEnd').value;
+      const s=summarize(start,end);
+      openModal(`<div class="modal-head no-print"><h2>Laporan ${start} s/d ${end}</h2><div class="toolbar"><button class="btn" onclick="window.print()">Print / Simpan PDF</button><button class="btn secondary" onclick="closeModal()">Tutup</button></div></div><div class="receipt printable"><h3>Laporan ${escapeHTML(db.store.name)}</h3><p style="text-align:center">${start} s/d ${end}</p><div class="rline"></div><div>Omzet: <b>${money(s.sales)}</b></div><div>HPP: <b>${money(s.cogs)}</b></div><div>Laba Kotor: <b>${money(s.gross)}</b></div><div>Kas Masuk: <b>${money(s.income)}</b></div><div>Kas Keluar: <b>${money(s.expense)}</b></div><div>Laba Bersih Estimasi: <b>${money(s.net)}</b></div><div>Jumlah Transaksi: <b>${s.tx.length}</b></div><div>Item Terjual: <b>${s.itemsSold}</b></div><div class="rline"></div><p>Dibuat: ${dateTime()}</p></div>`)
+    }
+
+    function settingsHTML(){
+      return `<div class="grid two"><div class="card"><h2>Identitas Toko</h2>
+        <label>Nama Toko</label><input id="sName" value="${escapeHTML(db.store.name)}">
+        <label>Pemilik</label><input id="sOwner" value="${escapeHTML(db.store.owner)}">
+        <label>No. HP</label><input id="sPhone" value="${escapeHTML(db.store.phone||'')}">
+        <label>Alamat</label><textarea id="sAddress">${escapeHTML(db.store.address||'')}</textarea>
+        <label>Pesan Struk</label><input id="sNote" value="${escapeHTML(db.store.note||'Terima kasih sudah belanja.')}">
+        <button class="btn full" onclick="saveSettings()">Simpan Pengaturan</button>
+      </div><div class="card"><h2>Keamanan & Data</h2>
+        <label>Ganti PIN 6 digit</label><input id="sPin" type="password" inputmode="numeric" maxlength="6" placeholder="Kosongkan jika tidak diganti">
+        <button class="btn secondary full" onclick="changePin()">Ganti PIN</button>
+        <hr style="border-color:var(--line);margin:20px 0;border-style:solid;border-width:1px 0 0">
+        <button class="btn full" onclick="backupJSON()">Download Backup JSON</button>
+        <label>Import Backup JSON</label><input id="importFile" type="file" accept="application/json" onchange="importJSON(event)">
+        <button class="btn danger full" onclick="hardReset()">Reset Semua Data</button>
+        <p class="tiny">Aplikasi ini offline. Tidak ada data yang dikirim ke server. Data hanya ada di browser/perangkat kamu.</p>
+      </div></div>`;
+    }
+    function saveSettings(){
+      db.store.name=$('sName').value.trim()||db.store.name;
+      db.store.owner=$('sOwner').value.trim()||db.store.owner;
+      db.store.phone=$('sPhone').value.trim(); db.store.address=$('sAddress').value.trim(); db.store.note=$('sNote').value.trim();
+      saveDB(); renderNav(); toast('Pengaturan tersimpan.');
+    }
+    function changePin(){const pin=$('sPin').value.trim(); if(!/^\d{6}$/.test(pin)) return toast('PIN baru harus 6 digit.'); db.store.pin=pin; saveDB(); $('sPin').value=''; toast('PIN berhasil diganti.');}
+
+    function toCSV(rows){
+      return rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
+    }
+    function download(filename, text, type='text/csv'){
+      const blob = new Blob([text], {type}); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; a.click(); URL.revokeObjectURL(url);
+    }
+    function exportProductsCSV(){download('produk-kasir-elba.csv', toCSV([['Nama','SKU','Kategori','Modal','Harga','Stok','Min Stok'],...db.products.map(p=>[p.name,p.sku,p.category,p.cost,p.price,p.stock,p.minStock])]));}
+    function exportBooksCSV(){download('pembukuan-kasir-elba.csv', toCSV([['Tanggal','Tipe','Kategori','Nominal','Catatan'],...db.books.map(b=>[b.date,b.type,b.category,b.amount,b.note])]));}
+    function exportTransactionsCSV(){
+      const rows=[['Tanggal','Invoice','Metode','Produk','Qty','Harga','Modal','Subtotal Item','Diskon Transaksi','Total Transaksi']];
+      db.transactions.forEach(t=>t.items.forEach(i=>rows.push([t.date,t.invoice,t.method,i.name,i.qty,i.price,i.cost,i.total,t.discount,t.total])));
+      download('transaksi-kasir-elba.csv', toCSV(rows));
+    }
+    function backupJSON(){download(`backup-kasir-elba-${today()}.json`, JSON.stringify(db,null,2), 'application/json')}
+    function importJSON(e){
+      const file=e.target.files[0]; if(!file) return;
+      const reader=new FileReader();
+      reader.onload=()=>{try{const next=JSON.parse(reader.result); if(!next.store||!Array.isArray(next.products)||!Array.isArray(next.transactions)||!Array.isArray(next.books)) throw new Error('format'); if(confirm('Import backup akan mengganti data saat ini. Lanjut?')){db=next;saveDB();location.reload();}}catch(err){toast('File backup tidak valid.')}};
+      reader.readAsText(file);
+    }
+    function openModal(html){$('modalRoot').innerHTML=`<div class="modal-backdrop"><div class="modal">${html}</div></div>`}
+    function closeModal(){$('modalRoot').innerHTML=''}
+    document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+    init();
+  </script>
+</body>
+</html>
